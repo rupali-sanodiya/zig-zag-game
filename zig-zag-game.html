@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zig-Zag Master - Professional Edition</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --cell: #1a1a1a;
+            --path: #2ecc71;
+            --num: #9b59b6;
+            --text: #ffffff;
+        }
+
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center ;
+            justify-content: center; 
+            min-height: 100vh; 
+            font-family:  'Segoe UI', sans-serif;
+            margin: 0; 
+        }
+
+        h2 { margin-bottom: 20px; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            color: #555; }
+
+        #grid { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 8px; 
+            width: 90vw; 
+            max-width: 350px; 
+            padding: 10px;
+            background: #000;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.05);
+        }
+
+        .cell { 
+            aspect-ratio: 1 / 1; background: var(--cell); 
+            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; cursor: crosshair; user-select: none;
+            transition: all 0.3s ease; border: 2px solid transparent;
+        }
+
+        .num { background: var(--num); box-shadow: 0 0 15px var(--num); }
+        
+        .path { 
+            background: var(--path) !important; 
+            box-shadow: 0 0 20px var(--path); 
+            transform: scale(0.95);
+        }
+
+        .controls { margin-top: 30px; display: flex; gap: 15px; }
+
+        button { 
+            padding: 12px 25px; border: none; cursor: pointer; color: white; 
+            font-weight: bold; border-radius: 30px; font-size: 14px;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        button:hover { transform: translateY(-3px); }
+        .restart { background: #3498db; }
+        .change { background: #e74c3c; }
+
+    </style>
+</head>
+<body>
+
+    <h2>Zig-Zag Path</h2>
+    <div id="grid"></div>
+    <div class="controls">
+        <button class="restart" onclick="gameReset()">Restart Current</button>
+        <button class="change" onclick="gameInit()">Change Position</button>
+    </div>
+
+    <script>
+        const gridBox = document.getElementById('grid');
+        let boardState = Array(25).fill(0);
+        let currentTarget = 1;
+        let isDrawing = false;
+        let visited = new Set();
+
+        function gameInit() {
+            boardState.fill(0);
+            let pos = [...Array(25).keys()].sort(() => Math.random() - 0.5);
+            for(let i = 1; i <= 6; i++) boardState[pos.pop()] = i;
+            gameReset();
+        }
+
+        function gameReset() {
+            isDrawing = false;
+            currentTarget = 1;
+            visited.clear();
+            renderBoard();
+        }
+
+        function renderBoard() {
+            gridBox.innerHTML = '';
+            boardState.forEach((val, i) => {
+                let div = document.createElement('div');
+                div.className = 'cell' + (val ? ' num' : '');
+                div.innerText = val || '';
+
+                div.onmousedown = () => {
+                    if(val == 1) { 
+                        isDrawing = true; 
+                        div.classList.add('path'); 
+                        visited.add(i); 
+                    }
+                };
+
+                div.onmouseover = () => {
+                    if(!isDrawing) return;
+                    
+                    if(visited.has(i) || (val && val != (currentTarget + 1))) {
+                        isDrawing = false;
+                        setTimeout(() => {
+                            alert("FAIL");
+                            gameReset();
+                        }, 10);
+                        return;
+                    }
+
+                    div.classList.add('path');
+                    visited.add(i);
+
+                    if(val == (currentTarget + 1)) {
+                        currentTarget++;
+                        if(currentTarget == 6) {
+                            isDrawing = false;
+                            setTimeout(() => alert("WIN!"), 10);
+                        }
+                    }
+                };
+                
+                div.onmouseup = () => { isDrawing = false; };
+                gridBox.appendChild(div);
+            });
+        }
+        
+        window.onmouseup = () => { isDrawing = false; };
+        gameInit();
+    </script>
+</body>
+</html>
